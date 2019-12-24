@@ -15,6 +15,7 @@ from scipy.ndimage.interpolation import shift
 # train_three_path = "train_data/three"
 # train_four_path = "train_data/four"
 # train_five_path = "train_data/five"
+num_of_numbers_to_check = 5
 huge_num = 100000
 train_data_paths = ["train_data/one", "train_data/two", "train_data/three", "train_data/four", "train_data/five"]
 test_fpath = "test_files"
@@ -23,23 +24,26 @@ test_fpath = "test_files"
 # mfcc = stats.zscore(mfcc, axis=1) # Normalization
 k = 1
 all_mfccs = {"1": [], "2": [], "3": [], "4": [], "5": []}
+results = []
 
 
 def init_min_distances():
-    return np.full((2, k), huge_num)
+    return np.full((k, 2), huge_num, dtype=float)
 
 
 def check_min_distance(min_distances, new_distance, train_point_index):
-    min_distances[min_distances[:,1].argsort()]
+    min_distances[min_distances[:, 1].argsort()]
     for index, distance in enumerate(min_distances):
-        if new_distance < distance:
+        if new_distance < distance[1]:
             shift(min_distances, 1, cval=np.NaN)
             min_distances[index] = np.array([train_point_index, new_distance])
+            min_distances
             break
     return min_distances
 
+
 def find_knn(mfcc_to_check):
-    all_distances = np.array()
+    # all_distances = np.array()
     min_distances = init_min_distances()
     for index, mfccs in all_mfccs.items():
         for mfcc in mfccs:
@@ -48,16 +52,27 @@ def find_knn(mfcc_to_check):
     return min_distances
 
 
-def check_test_file():
+def final_prediction(min_distances_for_test_file):
+    occurances_counter = [0] * num_of_numbers_to_check
+    for distance in min_distances_for_test_file:
+        counter_index = int(distance[0]) - 1
+        if counter_index != huge_num:
+            occurances_counter[counter_index] = occurances_counter[counter_index] + 1
+    return np.argmax(occurances_counter) + 1
+
+def check_test_files():
     for filename in os.listdir(test_fpath):
         if filename.endswith(".wav"):
             mfcc_to_check = get_mfcc(test_fpath+"/"+filename)
-            find_min_distance(mfcc_to_check)
+            min_distances_for_test_file = find_knn(mfcc_to_check)
+            prediction = final_prediction(min_distances_for_test_file)
+            results.append((filename, prediction))
             #all_mfccs[str(index)].extend(get_mfcc(directory+"/"+filename))
-def predict(fpath):
-    pass
-    # print(mfcc)
 
+def print_results():
+    print("****** Results ******")
+    for result in results:
+        print(result)
 
 def print_all_mfccs():
     for i in all_mfccs:
@@ -72,7 +87,7 @@ def get_mfcc(fpath):
 
 
 def save_all_mfccs_from_train_data():
-    for (index,directory) in enumerate(train_data_paths, start=1):
+    for (index, directory) in enumerate(train_data_paths, start=1):
         for filename in os.listdir(directory):
             if filename.endswith(".wav"):
                 all_mfccs[str(index)].extend(get_mfcc(directory+"/"+filename))
@@ -80,7 +95,10 @@ def save_all_mfccs_from_train_data():
 
 def main():
     save_all_mfccs_from_train_data()
-    print_all_mfccs()
+    # print_all_mfccs()
+    check_test_files()
+    print_results()
+
 
 if __name__ == "__main__":
     main()
