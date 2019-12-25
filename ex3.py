@@ -4,27 +4,15 @@ import os
 import numpy as np
 from scipy.ndimage.interpolation import shift
 
-
-### 1. from test wav file take mfcc
-### 2. create 20 points (number of feautures) with 32 dimensions (number of feautures)
-### 3. feed new non test wav file
-### 4. using knn find closest number. possible normal(mfcc1 - mfcc2)
-### 5. print results
-# train_one_path = "train_data/one"
-# train_two_path = "train_data/two"
-# train_three_path = "train_data/three"
-# train_four_path = "train_data/four"
-# train_five_path = "train_data/five"
 num_of_numbers_to_check = 5
 huge_num = 100000
 train_data_paths = ["train_data/one", "train_data/two", "train_data/three", "train_data/four", "train_data/five"]
-test_fpath = "test_files"
-# y, sr = librosa.load(fpath, sr=None)
-# mfcc = librosa.feature.mfcc(y=y, sr=sr)
-# mfcc = stats.zscore(mfcc, axis=1) # Normalization
+# test_fpath = "test_files"
+test_fpath = "train_data_proper_file_names"
+output_file_path = "output.txt"
 k = 1
-all_mfccs = {"1": [], "2": [], "3": [], "4": [], "5": []}
-results = []
+all_mfccs = {"1": [], "2": [], "3": [], "4": [], "5": []} #all mfccs from train data divided by label
+results = [] # final results (filename, predicted label')
 
 
 def init_min_distances():
@@ -37,13 +25,11 @@ def check_min_distance(min_distances, new_distance, train_point_index):
         if new_distance < distance[1]:
             shift(min_distances, 1, cval=np.NaN)
             min_distances[index] = np.array([train_point_index, new_distance])
-            min_distances
             break
     return min_distances
 
 
 def find_knn(mfcc_to_check):
-    # all_distances = np.array()
     min_distances = init_min_distances()
     for index, mfccs in all_mfccs.items():
         for mfcc in mfccs:
@@ -60,6 +46,7 @@ def final_prediction(min_distances_for_test_file):
             occurances_counter[counter_index] = occurances_counter[counter_index] + 1
     return np.argmax(occurances_counter) + 1
 
+
 def check_test_files():
     for filename in os.listdir(test_fpath):
         if filename.endswith(".wav"):
@@ -67,12 +54,20 @@ def check_test_files():
             min_distances_for_test_file = find_knn(mfcc_to_check)
             prediction = final_prediction(min_distances_for_test_file)
             results.append((filename, prediction))
-            #all_mfccs[str(index)].extend(get_mfcc(directory+"/"+filename))
+
 
 def print_results():
-    print("****** Results ******")
+    print(f"****** Results k = {k}******")
     for result in results:
         print(result)
+
+
+def write_output_to_file():
+    file = open(output_file_path, 'w')
+    for result in results:
+        file.write(str(result[0]) + " - "+ str(result[1])+"\n")
+    file.close()
+
 
 def print_all_mfccs():
     for i in all_mfccs:
@@ -98,6 +93,7 @@ def main():
     # print_all_mfccs()
     check_test_files()
     print_results()
+    write_output_to_file()
 
 
 if __name__ == "__main__":
