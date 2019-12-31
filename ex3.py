@@ -11,8 +11,8 @@ test_fpath = "test_files"
 # test_fpath = "train_data_proper_file_names"
 output_file_path = "output.txt"
 k = 1
-all_mfccs = {"1": [], "2": [], "3": [], "4": [], "5": []} #all mfccs from train data divided by label
-results = [] # final results (filename, predicted label')
+all_mfccs = {"1": [], "2": [], "3": [], "4": [], "5": []}  # all mfccs from train data divided by label
+results = []  # final results (filename, predicted label')
 
 
 # init matrix of of distance. every row [train_point_label, distance]. number of rows equal to k
@@ -49,11 +49,12 @@ def final_prediction(min_distances_for_test_file):
             occurances_counter[counter_index] = occurances_counter[counter_index] + 1
     return np.argmax(occurances_counter) + 1
 
+
 # find predictions for test files
 def check_test_files():
     for filename in os.listdir(test_fpath):
         if filename.endswith(".wav"):
-            mfcc_to_check = get_mfcc(test_fpath+"/"+filename)
+            mfcc_to_check = get_mfcc(test_fpath + "/" + filename)
             min_distances_for_test_file = find_knn(mfcc_to_check)
             prediction = final_prediction(min_distances_for_test_file)
             results.append((filename, prediction))
@@ -68,7 +69,7 @@ def print_results():
 def write_output_to_file():
     file = open(output_file_path, 'w')
     for result in results:
-        file.write(str(result[0]) + " - "+ str(result[1])+"\n")
+        file.write(str(result[0]) + " - " + str(result[1]) + "\n")
     file.close()
 
 
@@ -83,12 +84,13 @@ def get_mfcc(fpath):
     mfcc = stats.zscore(mfcc, axis=1)  # Normalization
     return mfcc
 
+
 # get all mfccs from train data and save them to all_mfccs
 def save_all_mfccs_from_train_data():
     for (index, directory) in enumerate(train_data_paths, start=1):
         for filename in os.listdir(directory):
             if filename.endswith(".wav"):
-                all_mfccs[str(index)].extend(get_mfcc(directory+"/"+filename))
+                all_mfccs[str(index)].extend(get_mfcc(directory + "/" + filename))
 
 
 def main():
