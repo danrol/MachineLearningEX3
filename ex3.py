@@ -8,7 +8,7 @@ num_of_numbers_to_check = 5
 huge_num = 100000
 train_data_paths = ["train_data/one", "train_data/two", "train_data/three", "train_data/four", "train_data/five"]
 test_fpath = "test_files"
-# test_fpath = "train_data_proper_file_names"
+#test_fpath = "train_data_proper_file_names"
 output_file_path = "output.txt"
 k = 1
 all_mfccs = {"1": [], "2": [], "3": [], "4": [], "5": []} #all mfccs from train data divided by label
@@ -21,7 +21,7 @@ def init_min_distances():
 
 
 def check_min_distance(min_distances, new_distance, train_point_index):
-    min_distances[min_distances[:, 1].argsort()]
+    min_distances = min_distances[min_distances[:, 1].argsort()]
     for index, distance in enumerate(min_distances):
         if new_distance < distance[1]:
             shift(min_distances, 1, cval=np.NaN)
@@ -45,8 +45,8 @@ def final_prediction(min_distances_for_test_file):
     occurances_counter = [0] * num_of_numbers_to_check
     for distance in min_distances_for_test_file:
         counter_index = int(distance[0]) - 1
-        if counter_index != huge_num:
-            occurances_counter[counter_index] = occurances_counter[counter_index] + 1
+        # if distance[1] != huge_num:
+        occurances_counter[counter_index] = occurances_counter[counter_index] + 1
     return np.argmax(occurances_counter) + 1
 
 # find predictions for test files
